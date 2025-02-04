@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexus
+  labels:
+    app: nexus
+spec:
+  replicas: {{ .Values.controller.replicaCount }}
+  selector:
+    matchLabels:
+      app: nexus
+  template:
+    metadata:
+      labels:
+        app: nexus
+    spec:
+      imagePullSecrets:
+        - name: acr-secret
+      securityContext:
+        fsGroup: 2000
+
+      containers:
+        - name: nexus
+          image: "{{ .Values.controller.image.repository }}:{{ .Values.controller.image.tag }}"
+          securityContext:
+            runAsUser: 200
+          ports:
+            - containerPort: 8081
+          resources:
+            requests:
+              cpu: {{ .Values.controller.resources.requests.cpu }}
+              memory: {{ .Values.controller.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.controller.resources.limits.cpu }}
+              memory: {{ .Values.controller.resources.limits.memory }}
+          volumeMounts:
+            - name: nexus-data
+              mountPath: /nexus-data
+          env:
+            - name: NEXUS_SECURITY_RANDOMPASSWORD
+              value: "false"
+
+      volumes:
+        - name: nexus-data
+          persistentVolumeClaim:
+            claimName: nexus-pvc

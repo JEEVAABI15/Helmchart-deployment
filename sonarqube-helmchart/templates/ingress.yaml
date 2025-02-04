@@ -1,0 +1,26 @@
+{{- if .Values.controller.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.controller.ingress.name }}
+  annotations:
+    {{- toYaml .Values.controller.ingress.annotations | nindent 4 }}
+spec:
+  rules:
+    - host: {{ index .Values.controller.ingress.hosts 0 }}
+      http:
+        paths:
+          - path: {{ .Values.controller.ingress.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-sonarqube
+                port:
+                  number: 9000
+  {{- if .Values.controller.ingress.tls }}
+  tls:
+    - hosts:
+        - {{ index .Values.controller.ingress.hosts 0 }}
+      secretName: {{ index .Values.controller.ingress.tls 0 "secretName" }}
+  {{- end }}
+{{- end }}

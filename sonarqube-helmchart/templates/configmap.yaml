@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sonarqube-config
+data:
+  sonar.jdbc.url: jdbc:postgresql://{{ .Values.database.external.host }}:{{ .Values.database.external.port }}/{{ .Values.database.external.name }}
+  sonar.jdbc.username: {{ .Values.database.external.user }}

@@ -1,0 +1,40 @@
+# Nexus configuration
+controller:
+  image:
+    repository: "mycontainereg002.azurecr.io/nexus"  # Replace with your ACR repository URL
+    tag: "v1"
+    pullPolicy: Always
+  replicaCount: 1
+  
+  service:
+    type: ClusterIP
+    port: 8081
+  ingress:
+    enabled: false
+    name: nexus-ingress
+    annotations: {}
+    path: /
+    hosts:
+      - nexus.local
+    tls: []  # Example: tls: [{ hosts: [ "nexus.local" ], secretName: "nexus-tls" }]
+
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "2Gi"
+    limits:
+      cpu: "1"
+      memory: "4Gi"
+
+  persistence:
+    enabled: true
+    storageClass: "default"
+    size: "10Gi"
+
+# Nexus admin credentials
+nexus:
+  adminPassword: "admin123"
+
+# Image Pull Secret for ACR
+imagePullSecrets:
+  - name: acr-secret

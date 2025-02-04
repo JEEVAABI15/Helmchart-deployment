@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jenkins-init-config
+data:
+  init.groovy: |
+    import jenkins.model.*
+    import hudson.security.*
+    
+    def instance = Jenkins.getInstance()
+    def hudsonRealm = new HudsonPrivateSecurityRealm(false)
+    def user = System.getenv("JENKINS_ADMIN_ID")
+    def password = System.getenv("JENKINS_ADMIN_PASSWORD")
+
+    hudsonRealm.createAccount(user, password)
+    instance.setSecurityRealm(hudsonRealm)
+
+    def strategy = new FullControlOnceLoggedInAuthorizationStrategy()
+    instance.setAuthorizationStrategy(strategy)
+    instance.save()

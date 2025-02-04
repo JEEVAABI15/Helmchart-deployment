@@ -1,0 +1,41 @@
+controller:
+  image:
+    repository: "mycontainereg002.azurecr.io/jenkins"
+    tag: "v1"
+    pullPolicy: Always
+
+  adminUser: "admin"  # Jenkins Admin Username
+  adminPassword: "MySecurePassword123"  # Jenkins Admin Password (change this!)
+
+  service:
+    type: LoadBalancer
+    port: 8080
+    targetPort: 8080
+
+  ingress:
+    enabled: false
+    name: jenkins-ingress
+    annotations: {}
+    path: /
+    hosts:
+      - jenkins.local
+    tls: []
+
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
+
+  persistence:
+    enabled: true
+    storageClass: "default"
+    size: "10Gi"
+
+persistence:
+  existingClaim: jenkins-pvc
+
+imagePullSecrets:
+  - name: acr-secret

@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarqube
+  labels:
+    app: sonarqube
+spec:
+  replicas: {{ .Values.controller.replicaCount }}
+  selector:
+    matchLabels:
+      app: sonarqube
+  template:
+    metadata:
+      labels:
+        app: sonarqube
+    spec:
+      securityContext:
+        fsGroup: 1000
+
+      initContainers:
+        - name: init-permissions
+          image: busybox
+          command:
+            - sh
+            - -c
+            - |
+              mkdir -p /opt/sonarqube/data /opt/sonarqube/temp /opt/sonarqube/logs && \
+              chown -R 1000:1000 /opt/sonarqube/data /opt/sonarqube/temp /opt/sonarqube/logs
+          securityContext:
+            runAsUser: 1000
+          volumeMounts:
+            - name: sonarqube-data
+              mountPath: /opt/sonarqube
+
+      containers:
+        - name: sonarqube
+          image: "{{ .Values.controller.image.repository }}:{{ .Values.controller.image.tag }}"
+          securityContext:
+            runAsUser: 1000
+          ports:
+            - containerPort: 9000
+          resources:
+            requests:
+              cpu: {{ .Values.controller.resources.requests.cpu }}
+              memory: {{ .Values.controller.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.controller.resources.limits.cpu }}
+              memory: {{ .Values.controller.resources.limits.memory }}
+          envFrom:
+            - configMapRef:
+                name: sonarqube-config
+            - secretRef:
+                name: sonarqube-secrets
+          volumeMounts:
+            - name: sonarqube-data
+              mountPath: /opt/sonarqube/data
+            - name: sonarqube-logs
+              mountPath: /opt/sonarqube/logs
+            - name: sonarqube-temp
+              mountPath: /opt/sonarqube/temp
+
+      volumes:
+        - name: sonarqube-data
+          persistentVolumeClaim:
+            claimName: sonarqube-pvc
+        - name: sonarqube-logs
+          emptyDir: {}
+        - name: sonarqube-temp
+          emptyDir: {}
